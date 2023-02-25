@@ -6,12 +6,114 @@ generator client {
 }
 
 datasource db {
-    provider = "sqlite"
+    provider = "mongodb"
     url      = env("DATABASE_URL")
 }
 
-model Example {
-    id        String   @id @default(cuid())
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+model Stock {
+    id                  String         @id @default(auto()) @map("_id") @db.ObjectId
+    companyName         String
+    industry            String
+    symbol              String
+    activeSeries        String[]
+    debtSeries          String[]
+    tempSuspendedSeries String[]
+    isFNOSec            Boolean
+    isCASec             Boolean
+    isSLBSec            Boolean
+    isDebtSec           Boolean
+    isSuspended         Boolean
+    isETFSec            Boolean
+    isDelisted          Boolean
+    isin                String
+    isTop10             Boolean
+    identifier          String
+    metaDataId          String?        @db.ObjectId
+    secuirtyInfoId      String?        @db.ObjectId
+    PriceInfo           PriceInfo?     @relation(fields: [priceInfoId], references: [id])
+    priceInfoId         String?        @db.ObjectId
+    industryInfoId      String?        @db.ObjectId
+    MetaData            MetaData[]
+    SecuirtyInfo        SecuirtyInfo[]
+    IndustryInfo        IndustryInfo[]
+    PreOpenMarket       PreOpenMarket? @relation(fields: [preOpenMarketId], references: [id])
+    preOpenMarketId     String?        @db.ObjectId
+}
+
+model MetaData {
+    id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+    meta_series         String
+    meta_symbol         String
+    meta_isin           String
+    meta_status         String
+    meta_listingDate    DateTime
+    meta_industry       String
+    meta_lastUpdateTime DateTime
+    meta_pdSectorPe     Float
+    meta_pdSymbolPe     Float
+    meta_pdSectorInd    String
+    stocks              Stock    @relation(fields: [stockId], references: [id])
+    stockId             String   @db.ObjectId
+}
+
+model SecuirtyInfo {
+    id             String @id @default(auto()) @map("_id") @db.ObjectId
+    boardStatus    String
+    tradingStatus  String
+    tradingSegment String
+    sessionNo      String
+    slb            String
+    classOfShare   String
+    derivatives    String
+    surveillance   Json
+    faceValue      Int
+    issuedSize     BigInt
+    stocks         Stock  @relation(fields: [stockId], references: [id])
+    stockId        String @db.ObjectId
+}
+
+model PriceInfo {
+    id              String  @id @default(auto()) @map("_id") @db.ObjectId
+    lastPrice       Float
+    change          Float
+    pChange         Float
+    previousClose   Float
+    open            Float
+    close           Float
+    vwap            Float
+    lowerCP         String
+    upperCP         String
+    pPriceBand      String
+    basePrice       Float
+    intraDayHighLow Json
+    wekHighLow      Json
+    iNavValue       String
+    checkINAV       Boolean
+    stocks          Stock[]
+}
+
+model IndustryInfo {
+    id            String @id @default(auto()) @map("_id") @db.ObjectId
+    macro         String
+    sector        String
+    industry      String
+    basicIndustry String
+    stocks        Stock  @relation(fields: [stockId], references: [id])
+    stockId       String @db.ObjectId
+}
+
+model PreOpenMarket {
+    id                String   @id @default(auto()) @map("_id") @db.ObjectId
+    preopen           Json
+    ato               Json
+    IEP               Float
+    totalTradedVolume BigInt
+    finalPrice        Float
+    finalQuantity     BigInt
+    lastUpdateTime    DateTime
+    totalBuyQuantity  BigInt
+    totalSellQuantity BigInt
+    atoBuyQty         Int
+    atoSellQty        Int
+    stocks            Stock[]
 }
